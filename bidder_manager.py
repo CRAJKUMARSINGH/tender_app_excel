@@ -121,27 +121,6 @@ class BidderManager:
         except Exception as e:
             logger.error(f"Error saving bidder database: {e}")
             return False
-                        else:
-                            last_used = datetime.strptime(last_used_str, '%Y-%m-%d')
-                        
-                        if (cutoff_date - last_used).days <= days:
-                            recent.append({
-                                'name': bidder_name,
-                                'address': bidder_data.get('address', ''),
-                                'last_used': last_used_str,
-                                'days_ago': (cutoff_date - last_used).days
-                            })
-                    except ValueError:
-                        # Skip entries with invalid dates
-                        continue
-            
-            # Sort by most recent first
-            recent.sort(key=lambda x: x.get('days_ago', 999))
-            return recent[:20]  # Return top 20 recent bidders
-            
-        except Exception as e:
-            logger.error(f"Error getting recent bidders: {e}")
-            return []
     
     def search_bidders(self, query: str, limit: int = 10) -> List[Dict]:
         """Search bidders by name or address"""

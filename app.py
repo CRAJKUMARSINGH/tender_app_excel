@@ -1,6 +1,4 @@
 import os
-import pandas as pd
-import xlsxwriter
 import logging
 from flask import Flask, request, jsonify, render_template, send_file
 from werkzeug.utils import secure_filename
@@ -49,7 +47,9 @@ class Analytics:
         try:
             if os.path.exists(self.stats_file):
                 with open(self.stats_file, 'r') as f:
-                    return json.load(f)
+                    loaded = json.load(f)
+                    loaded['file_types'] = defaultdict(int, loaded.get('file_types', {}))
+                    return loaded
         except Exception as e:
             logger.error(f"Error loading analytics: {e}")
         return {
@@ -64,7 +64,11 @@ class Analytics:
     def save_stats(self):
         try:
             with open(self.stats_file, 'w') as f:
-                json.dump(self.stats, f, indent=2)
+                stats_to_save = dict(self.stats)
+                file_types = stats_to_save.get('file_types', {})
+                if isinstance(file_types, defaultdict):
+                    stats_to_save['file_types'] = dict(file_types)
+                json.dump(stats_to_save, f, indent=2)
         except Exception as e:
             logger.error(f"Error saving analytics: {e}")
     
@@ -153,8 +157,8 @@ def validate_percentile(value):
             return False, "Percentile must be a valid number"
         
         # Check range
-        if float_value < -99.99 or float_value > 99.99:
-            return False, f"Percentile must be between -99.99% and +99.99% (got {float_value}%)"
+        if float_value < -99.99 or float_value > 9.99:
+            return False, f"Percentile must be between -99.99% and +9.99% (got {float_value}%)"
         
         return True, "Valid percentile"
     except Exception as e:
@@ -168,6 +172,11 @@ def parse_input_file_cached(file_path):
 
 def parse_input_file(file_path):
     """Enhanced parse input Excel file with better error handling and validation"""
+    # Lazy import to avoid heavy dependency when not needed (e.g., in tests)
+    try:
+        import pandas as pd
+    except Exception as import_error:
+        raise ImportError("pandas is required to parse Excel files. Please install pandas.") from import_error
     start_time = time.time()
     task_id = f"parse_{hashlib.md5(file_path.encode()).hexdigest()[:8]}"
     
@@ -262,6 +271,8 @@ def parse_input_file(file_path):
 def create_excel_template(data, template_type, output_path):
     """Enhanced Excel template creation with better formatting and error handling"""
     try:
+        # Lazy import to reduce import-time dependencies
+        import xlsxwriter
         workbook = xlsxwriter.Workbook(output_path)
         
         # Enhanced formats with better styling
@@ -353,6 +364,7 @@ def create_excel_template(data, template_type, output_path):
         
         workbook.close()
         logger.info(f"Template {template_type} created successfully: {output_path}")
+        return True
         
     except Exception as e:
         logger.error(f"Error creating template {template_type}: {str(e)}")
