@@ -451,7 +451,7 @@ def generate_templates():
             return jsonify({'error': 'No data provided'}), 400
         
         # Enhanced validation with detailed error messages
-        for work_index, work in enumerate(data['works']):
+        for work_index, work in enumerate(data.get('works', [])):
             bidders = work.get('bidders', [])
             if not bidders:
                 return jsonify({'error': f"No bidders found for {work['name']}"}), 400
@@ -468,6 +468,9 @@ def generate_templates():
                 is_valid, message = validate_percentile(percentile)
                 if not is_valid:
                     return jsonify({'error': f"Invalid percentile for {work['name']} - {name}: {message}"}), 400
+                
+                # Update bidder usage in database
+                bidder_manager.update_bidder_usage(name, bidder.get('address', ''))
         
         # Generate templates
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -482,14 +485,20 @@ def generate_templates():
             for file_path in generated_files:
                 zipf.write(file_path, os.path.basename(file_path))
         
+        # Record successful generation
+        analytics.record_upload('template_generation', 'success', True)
+        
         return jsonify({
             'success': True,
             'download_url': f'/download/{os.path.basename(zip_path)}',
-            'files': [os.path.basename(f) for f in generated_files]
+            'files': [os.path.basename(f) for f in generated_files],
+            'zip_file': os.path.basename(zip_path)
         })
         
     except Exception as e:
+        analytics.record_upload('template_generation', 'error', False)
         logger.error(f"Template generation error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')

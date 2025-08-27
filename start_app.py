@@ -26,6 +26,32 @@ def main():
             os.makedirs(directory)
             print(f"✅ Created directory: {directory}")
     
+    # Create Attached_assets directory structure if it doesn't exist
+    bidder_data_dir = 'Attached_assets/Bidder_data'
+    if not os.path.exists(bidder_data_dir):
+        os.makedirs(bidder_data_dir)
+        print(f"✅ Created directory: {bidder_data_dir}")
+        
+        # Create a basic bidder database if it doesn't exist
+        bidder_db_path = os.path.join(bidder_data_dir, 'bidder_database.json')
+        if not os.path.exists(bidder_db_path):
+            import json
+            sample_bidders = {
+                "Sample Contractor 1": {
+                    "name": "Sample Contractor 1",
+                    "address": "Sample Address 1",
+                    "last_used": "01/01/2024"
+                },
+                "Sample Contractor 2": {
+                    "name": "Sample Contractor 2", 
+                    "address": "Sample Address 2",
+                    "last_used": "02/01/2024"
+                }
+            }
+            with open(bidder_db_path, 'w') as f:
+                json.dump(sample_bidders, f, indent=2)
+            print(f"✅ Created sample bidder database: {bidder_db_path}")
+    
     # Check if required files exist
     required_files = ['app.py', 'templates/index.html', 'requirements.txt']
     for file_path in required_files:

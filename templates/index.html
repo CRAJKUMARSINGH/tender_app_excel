@@ -250,9 +250,15 @@
                 return;
             }
 
-            // Collect bidder data with better validation
+            // Collect bidder data with enhanced validation
             const worksData = currentData.works.map((work, workIndex) => {
                 const numBidders = parseInt(document.getElementById(`bidders_${workIndex}`).value) || 0;
+                
+                if (numBidders === 0) {
+                    showAlert('warning', `Please specify number of bidders for ${work.name}`);
+                    return null;
+                }
+                
                 const bidders = [];
                 
                 for (let i = 0; i < numBidders; i++) {
@@ -262,9 +268,15 @@
                     const name = nameInput ? nameInput.value.trim() : '';
                     const percentileValue = percentileInput ? percentileInput.value.trim() : '';
                     
+                    // Validate bidder name
+                    if (!name) {
+                        showAlert('danger', `Please enter name for Bidder ${i + 1} in ${work.name}`);
+                        return null;
+                    }
+                    
                     // Validate percentile
                     if (percentileValue === '' || isNaN(parseFloat(percentileValue))) {
-                        showAlert('danger', `Invalid percentile for ${work.name} - Bidder ${i + 1}. Please enter a valid number.`);
+                        showAlert('danger', `Invalid percentile for ${work.name} - ${name}. Please enter a valid number.`);
                         return null;
                     }
                     
@@ -272,15 +284,15 @@
                     
                     // Check range
                     if (percentile < -99.99 || percentile > 99.99) {
-                        showAlert('danger', `Invalid percentile for ${work.name} - Bidder ${i + 1}. Must be between -99.99% and +99.99%.`);
+                        showAlert('danger', `Invalid percentile for ${work.name} - ${name}. Must be between -99.99% and +99.99%.`);
                         return null;
                     }
                     
-                    if (name) {
-                        bidders.push({ name, percentile });
-                    } else {
-                        bidders.push({ name: `Bidder ${i + 1}`, percentile });
-                    }
+                    bidders.push({ 
+                        name: name, 
+                        percentile: percentile,
+                        address: '' // Can be enhanced to collect address
+                    });
                 }
                 
                 return {
@@ -294,9 +306,11 @@
                 return;
             }
 
-            const processData = {
+            const requestData = {
+                data: {
                 ...currentData,
                 works: worksData
+                }
             };
 
             showLoading(true);
@@ -307,13 +321,13 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(processData)
+                body: JSON.stringify(requestData.data)
             })
             .then(response => response.json())
             .then(data => {
                 showLoading(false);
                 if (data.success) {
-                    showDownloadSection(data.files);
+                    showDownloadSection(data.files, data.zip_file);
                     showAlert('success', 'Templates generated successfully!');
                 } else {
                     showAlert('danger', data.error || 'Processing failed');
@@ -325,11 +339,22 @@
             });
         }
 
-        function showDownloadSection(files) {
+        function showDownloadSection(files, zipFile) {
             const downloadSection = document.getElementById('downloadSection');
             const downloadButtons = document.getElementById('downloadButtons');
             
             downloadButtons.innerHTML = '';
+            
+            // Add zip download button
+            if (zipFile) {
+                downloadButtons.innerHTML += `
+                    <a href="/download/${zipFile}" class="download-btn" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                        <i class="fas fa-file-archive"></i> Download All Templates (ZIP)
+                    </a>
+                `;
+            }
+            
+            // Add individual file buttons
             files.forEach(file => {
                 downloadButtons.innerHTML += `
                     <a href="/download/${file}" class="download-btn">

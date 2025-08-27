@@ -37,15 +37,90 @@ class BidderManager:
         """Get recently used bidders (within specified days)"""
         try:
             recent = []
-            cutoff_date = datetime.now()
+            current_date = datetime.now()
             
             for bidder_name, bidder_data in self.bidders.items():
                 last_used_str = bidder_data.get('last_used', '')
                 if last_used_str:
                     try:
                         # Handle different date formats
-                        if '/' in last_used_str:
-                            last_used = datetime.strptime(last_used_str, '%d/%m/%Y')
+                        last_used = None
+                        
+                        # Try different date formats
+                        date_formats = ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y']
+                        for date_format in date_formats:
+                            try:
+                                last_used = datetime.strptime(last_used_str, date_format)
+                                break
+                            except ValueError:
+                                continue
+                        
+                        if last_used is None:
+                            # Try parsing ISO format
+                            last_used = datetime.fromisoformat(last_used_str.replace('Z', '+00:00'))
+                        
+                        if last_used:
+                            days_diff = (current_date - last_used).days
+                            if days_diff <= days:
+                                recent.append({
+                                    'name': bidder_name,
+                                    'address': bidder_data.get('address', ''),
+                                    'last_used': last_used_str,
+                                    'days_ago': days_diff
+                                })
+                    except Exception as date_error:
+                        logger.warning(f"Could not parse date for {bidder_name}: {last_used_str} - {date_error}")
+                        # Include bidder anyway with unknown date
+                        recent.append({
+                            'name': bidder_name,
+                            'address': bidder_data.get('address', ''),
+                            'last_used': last_used_str,
+                            'days_ago': 999
+                        })
+            
+            # Sort by most recent first (lowest days_ago)
+            recent.sort(key=lambda x: x.get('days_ago', 999))
+            return recent[:20]  # Return top 20 recent bidders
+            
+        except Exception as e:
+            logger.error(f"Error getting recent bidders: {e}")
+            return []
+    
+    def update_bidder_usage(self, name: str, address: str = '') -> bool:
+        """Update bidder usage timestamp"""
+        try:
+            current_date = datetime.now().strftime('%d/%m/%Y')
+            
+            if name in self.bidders:
+                self.bidders[name]['last_used'] = current_date
+                if address:
+                    self.bidders[name]['address'] = address
+            else:
+                # Add new bidder
+                self.bidders[name] = {
+                    'name': name,
+                    'address': address,
+                    'last_used': current_date
+                }
+            
+            # Save to file
+            self.save_bidders()
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating bidder usage: {e}")
+            return False
+    
+    def save_bidders(self) -> bool:
+        """Save bidder data to JSON file"""
+        try:
+            os.makedirs(os.path.dirname(self.database_path), exist_ok=True)
+            with open(self.database_path, 'w', encoding='utf-8') as f:
+                json.dump(self.bidders, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            logger.error(f"Error saving bidder database: {e}")
+            return False
                         else:
                             last_used = datetime.strptime(last_used_str, '%Y-%m-%d')
                         
