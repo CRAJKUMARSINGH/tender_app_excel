@@ -1,8 +1,10 @@
 flask==2.3.3
-pandas==2.1.1
+# Pandas 2.1.1 fails to build on Python 3.13; require a 3.13-compatible release
+pandas>=2.2.3,<3.0
 openpyxl==3.1.2
 xlsxwriter==3.1.9
-numpy==1.24.3
+# Numpy 1.24.x doesn't support Python 3.13; bump to 2.x
+numpy>=2.2.0,<3.0
 flask-wtf==1.1.1
 werkzeug==2.3.7
 python-dotenv==1.0.0
