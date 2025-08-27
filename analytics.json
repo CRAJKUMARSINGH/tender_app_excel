@@ -1,0 +1,14 @@
+{
+  "total_uploads": 3,
+  "successful_generations": 3,
+  "errors": 0,
+  "file_types": {
+    "xlsx": 3
+  },
+  "processing_times": [
+    0.2102832794189453,
+    0.1960744857788086,
+    0.19789457321166992
+  ],
+  "last_activity": "2025-08-27T12:12:13.997582"
+}

@@ -1,0 +1,46 @@
+2025-08-27 11:58:33,634 - INFO - Box image added to comparison sheet at row 17
+2025-08-27 11:58:33,662 - INFO - Template comparison created successfully: test_output_percentile_fix\comparison_template.xlsx
+2025-08-27 11:58:33,678 - INFO - Template scrutiny created successfully: test_output_percentile_fix\scrutiny_template.xlsx
+2025-08-27 11:58:33,694 - INFO - Template evaluation created successfully: test_output_percentile_fix\evaluation_template.xlsx
+2025-08-27 11:58:33,709 - INFO - Template award created successfully: test_output_percentile_fix\award_template.xlsx
+2025-08-27 11:58:33,711 - INFO - Box image added to comparison sheet at row 8
+2025-08-27 11:58:33,739 - INFO - Template comparison created successfully: test_output_edge_cases\comparison_template.xlsx
+2025-08-27 11:58:33,755 - INFO - Template scrutiny created successfully: test_output_edge_cases\scrutiny_template.xlsx
+2025-08-27 11:58:33,771 - INFO - Template evaluation created successfully: test_output_edge_cases\evaluation_template.xlsx
+2025-08-27 11:58:33,787 - INFO - Template award created successfully: test_output_edge_cases\award_template.xlsx
+2025-08-27 12:02:18,883 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.10.2:5000
+2025-08-27 12:02:18,883 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-27 12:07:39,727 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.10.2:5000
+2025-08-27 12:07:39,727 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-27 12:07:41,954 - INFO - 127.0.0.1 - - [27/Aug/2025 12:07:41] "GET / HTTP/1.1" 200 -
+2025-08-27 12:07:42,446 - INFO - 172.20.10.2 - - [27/Aug/2025 12:07:42] "GET / HTTP/1.1" 200 -
+2025-08-27 12:07:43,085 - INFO - 172.20.10.2 - - [27/Aug/2025 12:07:43] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-27 12:07:55,717 - INFO - File parsed successfully in 0.21s
+2025-08-27 12:07:55,719 - INFO - 172.20.10.2 - - [27/Aug/2025 12:07:55] "POST /upload HTTP/1.1" 200 -
+2025-08-27 12:08:37,049 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.10.2:5000
+2025-08-27 12:08:37,049 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-27 12:08:39,149 - INFO - 172.20.10.2 - - [27/Aug/2025 12:08:39] "GET / HTTP/1.1" 200 -
+2025-08-27 12:08:39,224 - INFO - 127.0.0.1 - - [27/Aug/2025 12:08:39] "GET / HTTP/1.1" 200 -
+2025-08-27 12:08:44,279 - INFO - File parsed successfully in 0.19s
+2025-08-27 12:08:44,281 - INFO - 127.0.0.1 - - [27/Aug/2025 12:08:44] "POST /upload HTTP/1.1" 200 -
+2025-08-27 12:12:07,916 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.10.2:5000
+2025-08-27 12:12:07,916 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-27 12:12:09,925 - INFO - 172.20.10.2 - - [27/Aug/2025 12:12:09] "GET / HTTP/1.1" 200 -
+2025-08-27 12:12:10,105 - INFO - 127.0.0.1 - - [27/Aug/2025 12:12:10] "GET / HTTP/1.1" 200 -
+2025-08-27 12:12:13,997 - INFO - File parsed successfully in 0.20s
+2025-08-27 12:12:13,999 - INFO - 127.0.0.1 - - [27/Aug/2025 12:12:13] "POST /upload HTTP/1.1" 200 -
+2025-08-27 12:12:27,238 - INFO - 127.0.0.1 - - [27/Aug/2025 12:12:27] "[31m[1mPOST /generate HTTP/1.1[0m" 400 -
+2025-08-27 12:12:34,747 - INFO - 127.0.0.1 - - [27/Aug/2025 12:12:34] "[31m[1mPOST /generate HTTP/1.1[0m" 400 -
+2025-08-27 12:12:41,621 - INFO - 127.0.0.1 - - [27/Aug/2025 12:12:41] "[31m[1mPOST /generate HTTP/1.1[0m" 400 -

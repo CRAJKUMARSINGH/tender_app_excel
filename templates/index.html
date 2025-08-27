@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Processing System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px solid #3498db;
+        }
+        .upload-section {
+            background: #ecf0f1;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px dashed #3498db;
+            transition: all 0.3s ease;
+        }
+        .work-card {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid #3498db;
+        }
+        .process-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        .download-btn {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="main-container">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1><i class="fas fa-file-contract"></i> Tender Processing System</h1>
+                        <p>Modern, Reliable, and Bug-Free Tender Processing Application</p>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertContainer"></div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <h3><i class="fas fa-upload"></i> Upload Tender File</h3>
+                        <p class="text-muted">Upload your Excel file containing tender information</p>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" class="form-control">
+                        <small class="text-muted">Supported formats: .xlsx, .xls</small>
+                    </div>
+
+                    <!-- Loading Section -->
+                    <div class="text-center" id="loadingSection" style="display: none;">
+                        <div class="spinner"></div>
+                        <h4>Processing your tender data...</h4>
+                        <p>Please wait while we generate your templates</p>
+                    </div>
+
+                    <!-- Data Display Section -->
+                    <div id="dataDisplay" style="display: none;">
+                        <h3><i class="fas fa-table"></i> Tender Information</h3>
+                        <div id="nitInfo"></div>
+                        <div id="worksData"></div>
+                        
+                        <button class="process-btn" onclick="processTender()">
+                            <i class="fas fa-cogs"></i> Generate Templates
+                        </button>
+                    </div>
+
+                    <!-- Download Section -->
+                    <div id="downloadSection" style="display: none;">
+                        <h3><i class="fas fa-download"></i> Generated Templates</h3>
+                        <p>Your templates have been generated successfully!</p>
+                        <div id="downloadButtons"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentData = null;
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading(true);
+            showAlert('info', 'Uploading file... Please wait.');
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    currentData = data.data;
+                    displayData(data.data);
+                    showAlert('success', 'File uploaded successfully!');
+                } else {
+                    showAlert('danger', data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showAlert('danger', 'Upload failed: ' + error.message);
+            });
+        }
+
+        function displayData(data) {
+            // Display NIT information
+            const nitInfo = document.getElementById('nitInfo');
+            nitInfo.innerHTML = `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5><i class="fas fa-info-circle"></i> NIT Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>NIT Number:</strong> ${data.nit_info.nit_number || 'N/A'}<br>
+                                <strong>Date of Opening:</strong> ${data.nit_info.opening_date || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Date of Calling:</strong> ${data.nit_info.calling_date || 'N/A'}<br>
+                                <strong>Date of Receipt:</strong> ${data.nit_info.receipt_date || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Display works data
+            const worksData = document.getElementById('worksData');
+            worksData.innerHTML = '<h5><i class="fas fa-tasks"></i> Works Information</h5>';
+            
+            data.works.forEach((work, index) => {
+                worksData.innerHTML += `
+                    <div class="work-card">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Item No:</strong> ${work.item_no}<br>
+                                <strong>Work Name:</strong> ${work.name}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Time of Completion:</strong> ${work.time_completion}<br>
+                                <strong>Earnest Money:</strong> ${work.earnest_money}
+                            </div>
+                            <div class="col-md-6">
+                                <label><strong>Number of Bidders:</strong></label>
+                                <input type="number" class="form-control" 
+                                       id="bidders_${index}" min="1" max="50" 
+                                       onchange="updateBidderInputs(${index})">
+                                <div id="bidderInputs_${index}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('dataDisplay').style.display = 'block';
+        }
+
+        function updateBidderInputs(workIndex) {
+            const numBidders = parseInt(document.getElementById(`bidders_${workIndex}`).value) || 0;
+            const container = document.getElementById(`bidderInputs_${workIndex}`);
+            
+            container.innerHTML = '';
+            
+            for (let i = 0; i < numBidders; i++) {
+                container.innerHTML += `
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" 
+                                   placeholder="Bidder ${i + 1} Name" 
+                                   id="bidder_name_${workIndex}_${i}">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="number" class="form-control" 
+                                   placeholder="Percentile (-99.99 to 99.99)" 
+                                   id="bidder_percentile_${workIndex}_${i}" 
+                                   step="0.01" min="-99.99" max="99.99">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function processTender() {
+            if (!currentData) {
+                showAlert('warning', 'Please upload a file first');
+                return;
+            }
+
+            // Collect bidder data with better validation
+            const worksData = currentData.works.map((work, workIndex) => {
+                const numBidders = parseInt(document.getElementById(`bidders_${workIndex}`).value) || 0;
+                const bidders = [];
+                
+                for (let i = 0; i < numBidders; i++) {
+                    const nameInput = document.getElementById(`bidder_name_${workIndex}_${i}`);
+                    const percentileInput = document.getElementById(`bidder_percentile_${workIndex}_${i}`);
+                    
+                    const name = nameInput ? nameInput.value.trim() : '';
+                    const percentileValue = percentileInput ? percentileInput.value.trim() : '';
+                    
+                    // Validate percentile
+                    if (percentileValue === '' || isNaN(parseFloat(percentileValue))) {
+                        showAlert('danger', `Invalid percentile for ${work.name} - Bidder ${i + 1}. Please enter a valid number.`);
+                        return null;
+                    }
+                    
+                    const percentile = parseFloat(percentileValue);
+                    
+                    // Check range
+                    if (percentile < -99.99 || percentile > 99.99) {
+                        showAlert('danger', `Invalid percentile for ${work.name} - Bidder ${i + 1}. Must be between -99.99% and +99.99%.`);
+                        return null;
+                    }
+                    
+                    if (name) {
+                        bidders.push({ name, percentile });
+                    } else {
+                        bidders.push({ name: `Bidder ${i + 1}`, percentile });
+                    }
+                }
+                
+                return {
+                    ...work,
+                    bidders
+                };
+            });
+
+            // Check if any work returned null (validation failed)
+            if (worksData.some(work => work === null)) {
+                return;
+            }
+
+            const processData = {
+                ...currentData,
+                works: worksData
+            };
+
+            showLoading(true);
+            showAlert('info', 'Generating templates... Please wait.');
+
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(processData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showDownloadSection(data.files);
+                    showAlert('success', 'Templates generated successfully!');
+                } else {
+                    showAlert('danger', data.error || 'Processing failed');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showAlert('danger', 'Processing failed: ' + error.message);
+            });
+        }
+
+        function showDownloadSection(files) {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadButtons = document.getElementById('downloadButtons');
+            
+            downloadButtons.innerHTML = '';
+            files.forEach(file => {
+                downloadButtons.innerHTML += `
+                    <a href="/download/${file}" class="download-btn">
+                        <i class="fas fa-download"></i> ${file}
+                    </a>
+                `;
+            });
+            
+            downloadSection.style.display = 'block';
+            downloadSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+        }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert_' + Date.now();
+            
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" id="${alertId}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

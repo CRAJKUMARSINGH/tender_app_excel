@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Processing System - Enhanced</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px solid #3498db;
+        }
+        .stats-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .bidder-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .bidder-card:hover {
+            background-color: #f8f9fa;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .bidder-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .upload-section {
+            background: #ecf0f1;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px dashed #3498db;
+            transition: all 0.3s ease;
+        }
+        .work-card {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid #3498db;
+        }
+        .process-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        .download-btn {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-highlight {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="main-container">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1><i class="fas fa-file-contract"></i> Tender Processing System</h1>
+                        <p>Modern, Reliable, and Bug-Free Tender Processing Application with Bidder Database</p>
+                    </div>
+
+                    <!-- Statistics Section -->
+                    {% if bidder_stats %}
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h3>{{ bidder_stats.total_bidders }}</h3>
+                                <p class="mb-0"><i class="fas fa-users"></i> Total Bidders</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h3>{{ bidder_stats.recent_bidders }}</h3>
+                                <p class="mb-0"><i class="fas fa-clock"></i> Recent Bidders</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h3>{{ popular_bidders|length }}</h3>
+                                <p class="mb-0"><i class="fas fa-star"></i> Popular Bidders</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Bidder Search Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-search"></i> Search Bidders</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="bidderSearch" placeholder="Search by name or address...">
+                                        <button class="btn btn-primary" onclick="searchBidders()">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                    <div id="searchResults" class="mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-clock"></i> Recent Bidders</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="recentBidders">
+                                        {% for bidder in recent_bidders %}
+                                        <div class="bidder-card" onclick="selectBidder('{{ bidder.name }}')">
+                                            <strong>{{ bidder.name }}</strong><br>
+                                            <small class="text-muted">{{ bidder.address }}</small><br>
+                                            <small class="text-info">Last used: {{ bidder.last_used }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertContainer"></div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <h3><i class="fas fa-upload"></i> Upload Tender File</h3>
+                        <p class="text-muted">Upload your Excel file containing tender information</p>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" class="form-control">
+                        <small class="text-muted">Supported formats: .xlsx, .xls</small>
+                    </div>
+
+                    <!-- Loading Section -->
+                    <div class="text-center" id="loadingSection" style="display: none;">
+                        <div class="spinner"></div>
+                        <h4>Processing your tender data...</h4>
+                        <p>Please wait while we generate your templates</p>
+                    </div>
+
+                    <!-- Data Display Section -->
+                    <div id="dataDisplay" style="display: none;">
+                        <h3><i class="fas fa-table"></i> Tender Information</h3>
+                        <div id="nitInfo"></div>
+                        <div id="worksData"></div>
+                        
+                        <button class="process-btn" onclick="processTender()">
+                            <i class="fas fa-cogs"></i> Generate Templates
+                        </button>
+                    </div>
+
+                    <!-- Download Section -->
+                    <div id="downloadSection" style="display: none;">
+                        <h3><i class="fas fa-download"></i> Generated Templates</h3>
+                        <p>Your templates have been generated successfully!</p>
+                        <div id="downloadButtons"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentData = null;
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        // Bidder search functionality
+        let searchTimeout;
+        document.getElementById('bidderSearch').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (this.value.length >= 2) {
+                    searchBidders();
+                } else {
+                    document.getElementById('searchResults').innerHTML = '';
+                }
+            }, 300);
+        });
+
+        function searchBidders() {
+            const query = document.getElementById('bidderSearch').value;
+            if (!query) return;
+
+            fetch(`/api/bidders/search?q=${encodeURIComponent(query)}&limit=10`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySearchResults(data.bidders, query);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                });
+        }
+
+        function displaySearchResults(bidders, query) {
+            const resultsDiv = document.getElementById('searchResults');
+            if (bidders.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-muted">No bidders found</p>';
+                return;
+            }
+
+            let html = '';
+            bidders.forEach(bidder => {
+                const highlightedName = highlightText(bidder.name, query);
+                const highlightedAddress = highlightText(bidder.address, query);
+                html += `
+                    <div class="bidder-card" onclick="selectBidder('${bidder.name}')">
+                        <div>${highlightedName}</div>
+                        <small class="text-muted">${highlightedAddress}</small><br>
+                        <small class="text-info">Last used: ${bidder.last_used}</small>
+                    </div>
+                `;
+            });
+            resultsDiv.innerHTML = html;
+        }
+
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        function selectBidder(bidderName) {
+            // Auto-fill bidder name in any open input fields
+            const bidderInputs = document.querySelectorAll('input[placeholder*="Bidder"][placeholder*="Name"]');
+            bidderInputs.forEach(input => {
+                if (!input.value) {
+                    input.value = bidderName;
+                    input.dispatchEvent(new Event('input'));
+                }
+            });
+            
+            showAlert('info', `Selected bidder: ${bidderName}`);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading(true);
+            showAlert('info', 'Uploading file... Please wait.');
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    currentData = data.data;
+                    displayData(data.data);
+                    showAlert('success', 'File uploaded successfully!');
+                } else {
+                    showAlert('danger', data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showAlert('danger', 'Upload failed: ' + error.message);
+            });
+        }
+
+        function displayData(data) {
+            // Display NIT information
+            const nitInfo = document.getElementById('nitInfo');
+            nitInfo.innerHTML = `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5><i class="fas fa-info-circle"></i> NIT Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>NIT Number:</strong> ${data.nit_info.nit_number || 'N/A'}<br>
+                                <strong>Date of Opening:</strong> ${data.nit_info.opening_date || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Date of Calling:</strong> ${data.nit_info.calling_date || 'N/A'}<br>
+                                <strong>Date of Receipt:</strong> ${data.nit_info.receipt_date || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Display works data with enhanced bidder input
+            const worksData = document.getElementById('worksData');
+            worksData.innerHTML = '<h5><i class="fas fa-tasks"></i> Works Information</h5>';
+            
+            data.works.forEach((work, index) => {
+                worksData.innerHTML += `
+                    <div class="work-card">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Item No:</strong> ${work.item_no || 'N/A'}<br>
+                                <strong>Work Name:</strong> ${work.name}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Time of Completion:</strong> ${work.time_completion || 'N/A'}<br>
+                                <strong>Earnest Money:</strong> ${work.earnest_money || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <label><strong>Number of Bidders:</strong></label>
+                                <input type="number" class="form-control" 
+                                       id="bidders_${index}" min="1" max="50" 
+                                       onchange="updateBidderInputs(${index})">
+                                <div id="bidderInputs_${index}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('dataDisplay').style.display = 'block';
+        }
+
+        function updateBidderInputs(workIndex) {
+            const numBidders = parseInt(document.getElementById(`bidders_${workIndex}`).value) || 0;
+            const container = document.getElementById(`bidderInputs_${workIndex}`);
+            
+            container.innerHTML = '';
+            
+            for (let i = 0; i < numBidders; i++) {
+                container.innerHTML += `
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="position-relative">
+                                <input type="text" class="form-control bidder-name-input" 
+                                       placeholder="Bidder ${i + 1} Name" 
+                                       id="bidder_name_${workIndex}_${i}"
+                                       data-work="${workIndex}" 
+                                       data-bidder="${i}"
+                                       oninput="showBidderSuggestions(this)">
+                                <div class="bidder-suggestions" id="suggestions_${workIndex}_${i}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="number" class="form-control" 
+                                   placeholder="Percentile (-99.99 to 99.99)" 
+                                   id="bidder_percentile_${workIndex}_${i}" 
+                                   step="0.01" min="-99.99" max="99.99">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showBidderSuggestions(input) {
+            const query = input.value;
+            const suggestionsDiv = document.getElementById(`suggestions_${input.dataset.work}_${input.dataset.bidder}`);
+            
+            if (query.length < 2) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            fetch(`/api/bidders/suggestions?q=${encodeURIComponent(query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.suggestions.length > 0) {
+                        let html = '';
+                        data.suggestions.forEach(suggestion => {
+                            html += `<div class="p-2 border-bottom" onclick="selectSuggestion('${suggestion}', '${input.id}')" style="cursor: pointer;">${suggestion}</div>`;
+                        });
+                        suggestionsDiv.innerHTML = html;
+                        suggestionsDiv.style.display = 'block';
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Suggestion error:', error);
+                });
+        }
+
+        function selectSuggestion(suggestion, inputId) {
+            document.getElementById(inputId).value = suggestion;
+            document.getElementById(inputId).parentNode.querySelector('.bidder-suggestions').style.display = 'none';
+        }
+
+        function processTender() {
+            if (!currentData) {
+                showAlert('warning', 'Please upload a file first');
+                return;
+            }
+
+            // Collect bidder data
+            const worksData = currentData.works.map((work, workIndex) => {
+                const numBidders = parseInt(document.getElementById(`bidders_${workIndex}`).value) || 0;
+                const bidders = [];
+                
+                for (let i = 0; i < numBidders; i++) {
+                    const nameInput = document.getElementById(`bidder_name_${workIndex}_${i}`);
+                    const percentileInput = document.getElementById(`bidder_percentile_${workIndex}_${i}`);
+                    
+                    const name = nameInput ? nameInput.value.trim() : '';
+                    const percentileValue = percentileInput ? percentileInput.value.trim() : '';
+                    
+                    // Validate percentile
+                    if (percentileValue === '' || isNaN(parseFloat(percentileValue))) {
+                        showAlert('danger', `Invalid percentile for Bidder ${i + 1}. Please enter a valid number.`);
+                        return null;
+                    }
+                    
+                    const percentile = parseFloat(percentileValue);
+                    
+                    // Check range
+                    if (percentile < -99.99 || percentile > 99.99) {
+                        showAlert('danger', `Invalid percentile for Bidder ${i + 1}. Must be between -99.99% and +99.99%.`);
+                        return null;
+                    }
+                    
+                    if (name) {
+                        bidders.push({ name, percentile });
+                    } else {
+                        bidders.push({ name: `Bidder ${i + 1}`, percentile });
+                    }
+                }
+                
+                return {
+                    ...work,
+                    bidders
+                };
+            });
+
+            const processData = {
+                ...currentData,
+                works: worksData
+            };
+
+            showLoading(true);
+            showAlert('info', 'Generating templates... Please wait.');
+
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(processData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showDownloadSection(data.files);
+                    showAlert('success', 'Templates generated successfully!');
+                } else {
+                    showAlert('danger', data.error || 'Processing failed');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showAlert('danger', 'Processing failed: ' + error.message);
+            });
+        }
+
+        function showDownloadSection(files) {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadButtons = document.getElementById('downloadButtons');
+            
+            downloadButtons.innerHTML = '';
+            files.forEach(file => {
+                downloadButtons.innerHTML += `
+                    <a href="/download/${file}" class="download-btn">
+                        <i class="fas fa-download"></i> ${file}
+                    </a>
+                `;
+            });
+            
+            downloadSection.style.display = 'block';
+            downloadSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+        }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert_' + Date.now();
+            
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" id="${alertId}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('bidder-name-input')) {
+                document.querySelectorAll('.bidder-suggestions').forEach(div => {
+                    div.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
