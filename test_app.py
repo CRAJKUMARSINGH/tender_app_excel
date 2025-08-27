@@ -43,9 +43,9 @@ def test_validation():
     test_cases = [
         (-99.99, True),   # Valid minimum
         (0.00, True),     # Valid zero
-        (9.99, True),     # Valid maximum
+        (99.99, True),    # Valid maximum
         (-100.00, False), # Invalid below minimum
-        (10.00, False),   # Invalid above maximum
+        (100.00, False),  # Invalid above maximum
         ("abc", False),   # Invalid string
         (None, False),    # Invalid None
     ]

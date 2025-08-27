@@ -17,8 +17,8 @@ def test_percentile_validation():
         (5.5, True, "Positive valid"),
         (-5.5, True, "Negative valid"),
         (-99.99, True, "Minimum valid"),
-        (9.99, True, "Maximum valid"),
-        (10.0, False, "Above maximum"),
+        (99.99, True, "Maximum valid"),
+        (100.0, False, "Above maximum"),
         (-100.0, False, "Below minimum"),
         ("", False, "Empty string"),
         (None, False, "None"),
@@ -121,7 +121,7 @@ def test_edge_cases():
     
     # Test with invalid percentiles
     invalid_cases = [
-        {'percentile': 10.0, 'expected': False},
+        {'percentile': 100.0, 'expected': False},
         {'percentile': -100.0, 'expected': False},
         {'percentile': None, 'expected': False},
         {'percentile': '', 'expected': False}

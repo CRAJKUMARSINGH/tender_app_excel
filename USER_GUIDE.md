@@ -50,7 +50,7 @@
 
 ### **Valid Range:**
 - **Minimum**: -99.99%
-- **Maximum**: +9.99%
+- **Maximum**: +99.99%
 - **Inclusive**: 0.00% is valid
 
 ### **Examples:**

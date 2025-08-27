@@ -157,8 +157,8 @@ def validate_percentile(value):
             return False, "Percentile must be a valid number"
         
         # Check range
-        if float_value < -99.99 or float_value > 9.99:
-            return False, f"Percentile must be between -99.99% and +9.99% (got {float_value}%)"
+        if float_value < -99.99 or float_value > 99.99:
+            return False, f"Percentile must be between -99.99% and +99.99% (got {float_value}%)"
         
         return True, "Valid percentile"
     except Exception as e:
