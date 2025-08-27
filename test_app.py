@@ -8,11 +8,23 @@ import os
 import sys
 import pandas as pd
 from datetime import datetime
+import pytest
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app import parse_input_file, create_excel_template, validate_percentile, generate_all_templates
+
+@pytest.fixture
+def data():
+    """Provide parsed data for template generation tests if test file exists."""
+    test_file = "input_DATA/NIT_10 works_1753162653002.xlsx"
+    if os.path.exists(test_file):
+        try:
+            return parse_input_file(test_file)
+        except Exception:
+            return None
+    return None
 
 def test_parse_input_file():
     """Test the input file parsing functionality"""
